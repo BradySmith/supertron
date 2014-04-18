@@ -25,7 +25,7 @@
 
 
 		  socket.on("update", function(data) {
-		  	ctx.clearRect(0,0,800,500);
+		  	//ctx.clearRect(0,0,800,500);
 		  	ctx.font = "10px Arial";
 		  	var players = data.currentPlayers;
 		  	players.forEach(function (player) {
@@ -37,6 +37,7 @@
 		  window.addEventListener("keydown", handleInput, false);
 	    function handleInput(e) {
 		 var KeyCode = {LEFT: 37, UP: 38, RIGHT: 39, DOWN: 40};
+		 var dir = null;
 		 switch (e.keyCode) {
 			case KeyCode.UP:
 				dir = 'up';
@@ -51,7 +52,9 @@
 				dir = 'down';
 				break;
 		 }
-		 socket.emit('changedirection', { dir: dir });
+		 if ( dir !== null) {
+		    socket.emit('changedirection', { dir: dir });
+		 }
         }
 		</script>
 

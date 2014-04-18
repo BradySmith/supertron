@@ -12,13 +12,26 @@ app.get('/', function (req, res) {
 });
 
 var currentPlayers = [];
+var availColors = ["blue", "red", "green"];
 
-function Player(color, x, y, clientID){
-    this.color = color;
+var gameBoard = new Array(800);
+for (var i=0; i<gameBoard.length;i++){
+    gameBoard[i] = new Array(500);
+}
+
+for (var i=0; i<gameBoard.length; i++){
+    for (var j=0; j<gameBoard[i]; j++){
+        gameBoard[i][j] = false;
+    }
+}
+
+function Player(x, y, clientID){
+    this.color = availColors.pop();
     this.x = x;
     this.y = y;
     this.clientID = clientID;
     this.direction = 'up';
+    this.alive = true;
 }
 
 var playercount = 0;
@@ -29,31 +42,79 @@ function gameLoop(){
             for (var i = 0; i < currentPlayers.length; i++){
                 var p = currentPlayers[i];
                 movePlayer(p);
+                if(p.x < 0 || p.x > 790 || p.y < 0 || p.y > 490){
+                    p.alive = false;
+                }
             }
-
+            checkForDeadies(currentPlayers);
             io.sockets.emit('update', { currentPlayers: currentPlayers } );
         }
 }
+
+function checkForDeadies(p){
+    for (var i = 0; i < p.length; i++){
+        if (p[i].alive == false){
+                availColors.push(currentPlayers[i].color);
+                currentPlayers.splice(i, 1);
+                console.log(i+" Died!");
+                playercount--;
+        }
+    }
+}
+
 function movePlayer(p) {
     var speed = 10;
     switch (p.direction) {
         case 'up':
             p.y = p.y - speed;
-            if (p.y < 0){p.y = 0;}
             break;
         case 'left':
             p.x = p.x - speed;
-            if (p.x < 0){p.x = 0;}
             break;
         case 'right':
             p.x = p.x + speed;
-            if (p.x > 790){p.x = 790;}
             break;
         case 'down':
             p.y = p.y + speed;
-            if (p.y > 490){p.y = 490;}
             break;
      }
+}
+
+function movePlayer2(p) {
+    var w = 800, h = 500;
+    var ph = 10;
+    var ps = 10;
+    var mx = 0, my = 0;
+    var died = false;
+    switch (p.direction) {
+        case 'up':
+            my = -1;
+            break;
+        case 'down':
+            my = 1;
+            break;
+        case 'left':
+            mx = -1;
+            break;
+        case 'right':
+            mx = 1;
+            break;
+    }
+    var dy = Math.max(Math.min(w-ph, p.y+my*ps), 0);
+    var dx = Math.max(Math.min(h-ph, p.x+mx*ps), 0);
+    if (dy !== p.y+my*ps || dx !== p.x+mx*ps) { died = true; }
+    for (var i = p.x; i < p.x + dx + ph*Math.abs(my); i++){
+        for (var j = p.y; j < p.y + dy + ph*Math.abs(mx); j++){
+            if (gameBoard[i][j] !== false){ 
+                died = true;
+            } else {
+                gameBoard[i][j] = true;
+            }
+        }
+    }
+    p.y += dy;
+    p.x += dx;
+    
 }
 
 io.sockets.on('connection', function (client) {
@@ -67,20 +128,28 @@ io.sockets.on('connection', function (client) {
 
         var x;
         switch (playercount) {
+
             case 0:
-                currentPlayers[0] = new Player("blue", 300, 250, client.userid);
+                currentPlayers[0] = new Player(300, 250, client.userid);
                 playercount++;
                 break;
             case 1:
-                currentPlayers[1] = new Player("red", 500, 250, client.userid);
+                currentPlayers[1] = new Player(500, 250, client.userid);
                 playercount++;
                 break;
             case 2:
-                currentPlayers[2] = new Player("green", 400, 250, client.userid);
+                currentPlayers[2] = new Player(400, 250, client.userid);
                 playercount++;
                 break;
             case 3:
                 break;
+
+            // for (var i=0; i<gameBoard.length; i++){
+            // for (var j=0; j<gameBoard[i]; j++){
+
+            //     }
+            // }
+
         }
 
         //When this client changes direction
@@ -97,6 +166,12 @@ io.sockets.on('connection', function (client) {
         client.on('disconnect', function () {
             //Useful to know when someone disconnects
             console.log('\t socket.io:: client disconnected ' + client.userid );
+            for (var i=0; i<currentPlayers.length;i++){
+                if (currentPlayers[i].clientID == client.userid){
+                    availColors.push(currentPlayers[i].color);
+                    currentPlayers.splice(i, 1);
+                }
+            }
             playercount--;
         }); //client.on disconnect
 
