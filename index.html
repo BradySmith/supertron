@@ -39,7 +39,7 @@
 				$("#userList").empty();
 				var connectedUsers = data.connectedUsers;
 				connectedUsers.forEach(function (player) {
-			  	    $("#userList").append("<li><p>" + player + "</p></li>");
+			  	    $("#userList").append("<li style='color:"+player.color+"'><p>" + player.nickname + "</p></li>");
 		  		})
 			});
 
@@ -47,7 +47,7 @@
 				$("#userList").empty();
 				var connectedUsers = data.connectedUsers;
 				connectedUsers.forEach(function (player) {
-			  	    $("#userList").append("<li><p>" + player + "</p></li>");
+			  	    $("#userList").append("<li style='color:"+player.color+"'><p>"+player.nickname+"</p></li>");
 		  		})
 			});
 
@@ -59,7 +59,7 @@
 		  	players.forEach(function (player) {
 		  	    ctx.fillStyle = player.color;
 		  	    ctx.fillRect(player.x, player.y, 10, 10);
-		  	    $("#playerList").append("<li><p>" + player.clientID + "</p></li>");
+		  	    $("#playerList").append("<li style='color:"+player.color+"'><p>" + player.nickname + "</p></li>");
 		  	})
 		  });
 		  

@@ -2,9 +2,13 @@ body {
 
 }
 
+li {
+	list-style-type:square;
+}
+
 p,h2 {
 	font-family: "Times New Roman", arial, serif;
-
+	color: black;
 }
 
 #master {
