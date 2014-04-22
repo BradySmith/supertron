@@ -151,6 +151,22 @@ io.sockets.on('connection', function (client) {
             io.sockets.emit('disconnected', { connectedUsers:  connectedUsers} );
         });
 
+        client.on('nameChange', function(data){
+            for (var i=0; i<connectedUsers.length;i++){
+                if (connectedUsers[i].clientID == client.userid){
+                    connectedUsers[i].nickname = data.name;
+                }
+            }
+
+            for (var i=0; i<currentPlayers.length;i++){
+                if (currentPlayers[i].clientID == client.userid){
+                    currentPlayers[i].nickname = data.name;
+                }
+            }
+
+            io.sockets.emit('connected', { connectedUsers: connectedUsers } );
+        });
+
         io.sockets.emit('connected', { connectedUsers: connectedUsers } );
     });
 

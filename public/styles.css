@@ -24,8 +24,24 @@ p,h2 {
 #content {
 	display: block;
 	float: left;
+	min-height: 500px;
 }
 
 #playerList{
 	min-height: 150px;
+}
+
+#bottom {
+	float: right;
+	display: block;
+}
+
+#inputName {
+	margin-top: 15px;
+	text-align: center;
+}
+
+#sendName {
+	margin-right: 15px;
+	text-align: center;
 }
