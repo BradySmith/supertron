@@ -1,8 +1,10 @@
-
 var app = require('express')()
   , server = require('http').createServer(app)
   , io = require('socket.io').listen(server)
   , UUID = require('node-uuid');
+
+var express = require('express');
+app.use('/public', express.static(__dirname+'/public'));
 
 server.listen(8800);
 io.set('log level', 1); // reduce logging
@@ -13,6 +15,8 @@ app.get('/', function (req, res) {
 
 var currentPlayers = [];
 var availColors = ["blue", "red", "green"];
+
+var connectedUsers = [];
 
 var gameBoard = new Array(800);
 for (var i=0; i<gameBoard.length;i++){
@@ -34,11 +38,21 @@ function Player(x, y, clientID){
     this.alive = true;
 }
 
-var playercount = 0;
-
 setInterval(gameLoop, 25);
 function gameLoop(){
-        if (typeof currentPlayers !== 0) {
+            if (currentPlayers.length == 0 && connectedUsers.length >= 2){
+                for (var i=0; i < 2; i++){
+                    switch (i) {
+                        case 0:
+                            currentPlayers[0] = new Player(300, 250, connectedUsers[i]);
+                            break;
+                        case 1:
+                            currentPlayers[1] = new Player(500, 250, connectedUsers[i]);
+                            break;
+                    }
+                }
+            }
+
             for (var i = 0; i < currentPlayers.length; i++){
                 var p = currentPlayers[i];
                 movePlayer(p);
@@ -48,7 +62,6 @@ function gameLoop(){
             }
             checkForDeadies(currentPlayers);
             io.sockets.emit('update', { currentPlayers: currentPlayers } );
-        }
 }
 
 function checkForDeadies(p){
@@ -56,8 +69,6 @@ function checkForDeadies(p){
         if (p[i].alive == false){
                 availColors.push(currentPlayers[i].color);
                 currentPlayers.splice(i, 1);
-                console.log(i+" Died!");
-                playercount--;
         }
     }
 }
@@ -117,6 +128,7 @@ function movePlayer2(p) {
     
 }
 
+
 io.sockets.on('connection', function (client) {
         //Generate a new UUID, looks something like 
         //5b2ca132-64bd-4513-99da-90e838ca47d1
@@ -125,32 +137,7 @@ io.sockets.on('connection', function (client) {
 
         //Useful to know when someoce connects
         console.log('\t socket.io:: player ' + client.userid + ' connected');
-
-        var x;
-        switch (playercount) {
-
-            case 0:
-                currentPlayers[0] = new Player(300, 250, client.userid);
-                playercount++;
-                break;
-            case 1:
-                currentPlayers[1] = new Player(500, 250, client.userid);
-                playercount++;
-                break;
-            case 2:
-                currentPlayers[2] = new Player(400, 250, client.userid);
-                playercount++;
-                break;
-            case 3:
-                break;
-
-            // for (var i=0; i<gameBoard.length; i++){
-            // for (var j=0; j<gameBoard[i]; j++){
-
-            //     }
-            // }
-
-        }
+        connectedUsers.push(client.userid);
 
         //When this client changes direction
         client.on('changedirection', function (data) {
@@ -172,8 +159,15 @@ io.sockets.on('connection', function (client) {
                     currentPlayers.splice(i, 1);
                 }
             }
-            playercount--;
-        }); //client.on disconnect
 
-    }); //sio.sockets.on connection
+            for (var i=0; i<connectedUsers.length;i++){
+                if (connectedUsers[i] == client.userid){
+                    connectedUsers.splice(i, 1);
+                }
+            }
+            io.sockets.emit('disconnected', { connectedUsers:  connectedUsers} );
+        });
+
+        io.sockets.emit('connected', { connectedUsers: connectedUsers } );
+    });
 
