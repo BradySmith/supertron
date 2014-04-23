@@ -127,9 +127,11 @@ function movePlayer(p) {
 }
 
 function markGrid(p, d) {
+    var size = 10;
+    var x, y;
     if (d == "up"){
-        for (var x = p.x; x < (p.x + 10); x++){
-            for (var y = p.y; y > (p.y - 10); y--){
+        for ( x = p.x; x < (p.x + size); x++){
+            for ( y = (p.y+(size - 1)); y >= (p.y); y--){
                 if (y >= 0){    // Check for Array Out of Bounds
                     if (gameBoard[x][y] == true) {
                          p.alive = false;
@@ -140,8 +142,8 @@ function markGrid(p, d) {
         }
     }
     else if (d == "down") {
-        for (var x = (p.x); x < (p.x + 10); x++){
-            for (var y = (p.y+10); y < (p.y + 20); y++){
+        for ( x = (p.x); x < (p.x + size); x++){
+            for ( y = (p.y); y < (p.y + size); y++){
                 if (y <= 500){  // Check for Array Out of Bounds
                     if (gameBoard[x][y] == true) {
                          p.alive = false;
@@ -151,9 +153,9 @@ function markGrid(p, d) {
             }
         }
     }
-    else if (d == "left"){
-        for (var x = (p.x); x > (p.x - 10); x--){
-            for (var y = (p.y); y < (p.y + 10); y++){
+    else if (d == "left"){ // still buggy 
+        for ( x = (p.x+(size-1)); x >= (p.x); x--){
+            for ( y = (p.y); y < (p.y + size); y++){
                 if (x >= 0){  // Check for Array Out of Bounds
                     if (gameBoard[x][y] == true) {
                          p.alive = false;
@@ -164,8 +166,8 @@ function markGrid(p, d) {
         }
     }
     else if (d == "right"){
-        for (var x = (p.x+10); x < (p.x + 20); x++){
-            for (var y = (p.y); y < (p.y + 10); y++){
+        for ( x = (p.x); x < (p.x + size); x++){
+            for ( y = (p.y); y < (p.y + 10); y++){
                 if (x < 800){  // Check for Array Out of Bounds
                     if (gameBoard[x][y] == true) {
                          p.alive = false;
