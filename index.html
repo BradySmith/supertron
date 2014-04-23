@@ -37,7 +37,7 @@
 			var myOffset;
 			ctx.fillStyle="#FF0000";
 
-			var socket = io.connect('10.227.163.211');
+			var socket = io.connect('http://localhost');
 
 			socket.on("connected", function(data) {
 				$("#userList").empty();
@@ -57,17 +57,21 @@
 		  		})
 			});
 
-		  socket.on("update", function(data) {
-		  	ctx.clearRect(0,0,800,500);
-		  	ctx.font = "10px Arial";
-		  	var players = data.currentPlayers;
-		  	$("#playerList").empty();
-		  	players.forEach(function (player) {
-		  	    ctx.fillStyle = player.color;
-		  	    ctx.fillRect(player.x, player.y, 10, 10);
-		  	    $("#playerList").append("<li style='color:"+player.color+"'><p>" + player.nickname + "</p></li>");
-		  	})
-		  });
+			socket.on("newGame", function(data){
+				ctx.clearRect(0,0,800,500);
+			});
+
+			socket.on("update", function(data) {
+				// ctx.clearRect(0,0,800,500);
+				ctx.font = "10px Arial";
+				var players = data.currentPlayers;
+				$("#playerList").empty();
+				players.forEach(function (player) {
+				    ctx.fillStyle = player.color;
+				    ctx.fillRect(player.x, player.y, 10, 10);
+				    $("#playerList").append("<li style='color:"+player.color+"'><p>" + player.nickname + "</p></li>");
+				})
+			});
 		  
 		window.addEventListener("keydown", handleInput, false);
 	    function handleInput(e) {

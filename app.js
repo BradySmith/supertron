@@ -28,11 +28,7 @@ for (var i=0; i<gameBoard.length;i++){
     gameBoard[i] = new Array(500);
 }
 
-for (var i=0; i<gameBoard.length; i++){
-    for (var j=0; j<gameBoard[i]; j++){
-        gameBoard[i][j] = false;
-    }
-}
+
 
 function User (clientID, nickname){
     this.clientID = clientID;
@@ -49,16 +45,28 @@ function Player(x, y, clientID, nickname){
     this.nickname = nickname;
 }
 
+function resetGameBoard(){
+    for (var i=0; i<gameBoard.length; i++){
+        for (var j=0; j<gameBoard[i].length; j++){
+            gameBoard[i][j] = false;
+        }
+    }
+}
+
 setInterval(gameLoop, 25);
 function gameLoop(){
-            if (currentPlayers.length == 0 && connectedUsers.length >= 2){
+            if (currentPlayers.length == 0 && connectedUsers.length >= 1){
+                io.sockets.emit('newGame', { newGame: 'placeholder' });
+                resetGameBoard();
                 for (var i=0; i < 3; i++){
                     switch (i) {
                         case 0:
                             currentPlayers[0] = new Player(300, 250, connectedUsers[i].clientID, connectedUsers[i].nickname);
                             break;
                         case 1:
-                            currentPlayers[1] = new Player(500, 250, connectedUsers[i].clientID, connectedUsers[i].nickname);
+                            if (connectedUsers.length > 1){
+                                currentPlayers[1] = new Player(500, 250, connectedUsers[i].clientID, connectedUsers[i].nickname);
+                            }
                             break;
                         case 2:
                             if (connectedUsers.length > 2){
@@ -72,12 +80,19 @@ function gameLoop(){
             for (var i = 0; i < currentPlayers.length; i++){
                 var p = currentPlayers[i];
                 movePlayer(p);
-                if(p.x < 0 || p.x > 790 || p.y < 0 || p.y > 490){
-                    p.alive = false;
-                }
+                checkForCollisions(p);
             }
-            checkForDeadies(currentPlayers);
             io.sockets.emit('update', { currentPlayers: currentPlayers } );
+            checkForDeadies(currentPlayers);
+}
+
+function checkForCollisions(p){
+    // Check for out of bounds
+    if(p.x < 0 || p.x > 790 || p.y < 0 || p.y > 490){
+        p.alive = false;
+    }
+
+    // Check 
 }
 
 function checkForDeadies(p){
@@ -94,17 +109,72 @@ function movePlayer(p) {
     switch (p.direction) {
         case 'up':
             p.y = p.y - speed;
+            markGrid(p, "up");
             break;
         case 'left':
             p.x = p.x - speed;
+            markGrid(p, "left");
             break;
         case 'right':
             p.x = p.x + speed;
+            markGrid(p, "right");
             break;
         case 'down':
             p.y = p.y + speed;
+            markGrid(p, "down");
             break;
      }
+}
+
+function markGrid(p, d) {
+    if (d == "up"){
+        for (var x = p.x; x < (p.x + 10); x++){
+            for (var y = p.y; y > (p.y - 10); y--){
+                if (y >= 0){    // Check for Array Out of Bounds
+                    if (gameBoard[x][y] == true) {
+                         p.alive = false;
+                    }
+                        gameBoard[x][y] = true;
+                }
+            }
+        }
+    }
+    else if (d == "down") {
+        for (var x = (p.x); x < (p.x + 10); x++){
+            for (var y = (p.y+10); y < (p.y + 20); y++){
+                if (y <= 500){  // Check for Array Out of Bounds
+                    if (gameBoard[x][y] == true) {
+                         p.alive = false;
+                    }
+                    gameBoard[x][y] = true;
+                }
+            }
+        }
+    }
+    else if (d == "left"){
+        for (var x = (p.x); x > (p.x - 10); x--){
+            for (var y = (p.y); y < (p.y + 10); y++){
+                if (x >= 0){  // Check for Array Out of Bounds
+                    if (gameBoard[x][y] == true) {
+                         p.alive = false;
+                    }
+                    gameBoard[x][y] = true;
+                }
+            }
+        }
+    }
+    else if (d == "right"){
+        for (var x = (p.x+10); x < (p.x + 20); x++){
+            for (var y = (p.y); y < (p.y + 10); y++){
+                if (x < 800){  // Check for Array Out of Bounds
+                    if (gameBoard[x][y] == true) {
+                         p.alive = false;
+                    }
+                    gameBoard[x][y] = true;
+                }
+            }
+        }
+    }
 }
 
 io.sockets.on('connection', function (client) {
