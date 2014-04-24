@@ -54,7 +54,7 @@
 				$("#userList").empty();
 				var connectedUsers = data.connectedUsers;
 				connectedUsers.forEach(function (player) {
-			  	    $("#userList").append("<li style='color:"+player.color+"'><p>" + player.nickname + "</p></li>");
+			  	    $("#userList").append("<li style='color:"+player.color+"'><p>"+player.nickname+" -- Wins: "+ player.wins +"</p></li>");
 			  	    $("#inputName")[0].placeholder = player.nickname;
 
 		  		})
@@ -64,12 +64,18 @@
 				$("#userList").empty();
 				var connectedUsers = data.connectedUsers;
 				connectedUsers.forEach(function (player) {
-			  	    $("#userList").append("<li style='color:"+player.color+"'><p>"+player.nickname+"</p></li>");
+			  	    $("#userList").append("<li style='color:"+player.color+"'><p>"+player.nickname+" -- Wins: "+ player.wins +"</p></li>");
 		  		})
 			});
 
 			socket.on("newGame", function(data){
 				ctx.clearRect(0,0,800,500);
+				$("#userList").empty();
+				var connectedUsers = data.connectedUsers;
+				connectedUsers.forEach(function (player) {
+			  	    $("#userList").append("<li style='color:"+player.color+"'><p>"+player.nickname+" -- Wins: "+ player.wins +"</p></li>");
+			  	    console.log(player.wins);
+		  		})
 			});
 
 			socket.on("update", function(data) {
@@ -85,7 +91,7 @@
 				players.forEach(function (player) {
 				    ctx.fillStyle = player.color;
 				    ctx.fillRect(player.x, player.y, 10, 10);
-				    $("#playerList").append("<li style='color:"+player.color+"'><p>" + player.nickname + "</p></li>");
+				    $("#playerList").append("<li style='color:"+player.color+"'><p>"+player.nickname+"</p></li>");
 				})
 				if (dragging) {
 					var cx = dragData.cx;

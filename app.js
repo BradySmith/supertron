@@ -15,6 +15,7 @@ app.get('/', function (req, res) {
 });
 
 var currentPlayers = [];
+var victor = null;
 
 // arrays
 var names = arrayfile.names;
@@ -34,6 +35,7 @@ function User (clientID, nickname, color){
     this.clientID = clientID;
     this.nickname = nickname;
     this.color = color;
+    this.wins = 0;
 }
 
 function Player(x, y, clientID, nickname, color){
@@ -47,6 +49,14 @@ function Player(x, y, clientID, nickname, color){
 }
 
 function resetGameBoard(){
+    //record the win
+    for (var i=0; i<connectedUsers.length;i++){
+        if (victor == connectedUsers[i].clientID){
+            connectedUsers[i].wins++;
+        }
+    }
+    victor = null;
+    // clear the board
     for (var i=0; i<gameBoard.length; i++){
         for (var j=0; j<gameBoard[i].length; j++){
             gameBoard[i][j] = false;
@@ -57,8 +67,8 @@ function resetGameBoard(){
 setInterval(gameLoop, 25);
 function gameLoop(){
             if (currentPlayers.length == 0 && connectedUsers.length >= 1){
-                io.sockets.emit('newGame', { newGame: 'placeholder' });
                 resetGameBoard();
+                io.sockets.emit('newGame', { connectedUsers: connectedUsers });
                 for (var i=0; i < 3; i++){
                     switch (i) {
                         case 0:
@@ -92,16 +102,16 @@ function checkForCollisions(p){
     if(p.x < 0 || p.x > 790 || p.y < 0 || p.y > 490){
         p.alive = false;
     }
-
-    // Check 
 }
 
 function checkForDeadies(p){
     for (var i = 0; i < p.length; i++){
         if (p[i].alive == false){
-                //availColors.push(currentPlayers[i].color);
                 currentPlayers.splice(i, 1);
         }
+    }
+    if (p.length == 1 && victor == null){
+        victor = p[0].clientID;
     }
 }
 
