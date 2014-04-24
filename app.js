@@ -199,6 +199,16 @@ io.sockets.on('connection', function (client) {
             var direction = data.dir;
             for (var i=0; i<currentPlayers.length;i++){
                 if (currentPlayers[i].clientID == client.userid){
+                    if (currentPlayers[i].direction == 'up' || currentPlayers[i].direction == 'down'){
+                        if (direction == 'up' || direction == 'down'){
+                            break;
+                        }
+                    }
+                    if (currentPlayers[i].direction == 'left' || currentPlayers[i].direction == 'right'){
+                        if (direction == 'left' || direction == 'right'){
+                            break;
+                        }
+                    }
                     currentPlayers[i].direction = direction;
                 }
             }
