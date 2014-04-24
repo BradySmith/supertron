@@ -5,13 +5,17 @@
 		<title>SuperTron</title>
 		<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
 		<script src="//code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
+		<script src="public/lib/hammer.min.js"></script>
 		<link rel="stylesheet" type="text/css" href="public/styles.css">
 	</head>
 
 	<body>
 		<div id="master">
 			<div id="gameBoard">
-				<canvas id="myCanvas" width="800" height="500" style="border:1px solid #c3c3c3;">
+				<canvas id="myCanvas" width="800" height="500" style="border:1px solid #c3c3c3; z-index: 1;">
+					Your browser does not support the HTML5 canvas tag.
+				</canvas>
+				<canvas id="myUI" width="800" height="500" style="position:absolute; top: 0px; left: 0px; border:1px; z-index: 2;">
 					Your browser does not support the HTML5 canvas tag.
 				</canvas>
 			</div>
@@ -34,6 +38,13 @@
 			
 			var c=document.getElementById("myCanvas");
 			var ctx=c.getContext("2d");
+			var ui = document.getElementById("myUI");
+			var ctxUI = ui.getContext("2d");
+			var dragging = false;
+			var execute = false;
+			var dragData = {};
+			var players;
+			
 			var myOffset;
 			ctx.fillStyle="#FF0000";
 
@@ -62,16 +73,85 @@
 			});
 
 			socket.on("update", function(data) {
-				// ctx.clearRect(0,0,800,500);
+				players = data.currentPlayers;
+				draw();
+				
+			});
+
+			function draw() {
+				ctxUI.clearRect(0,0,800,500);
 				ctx.font = "10px Arial";
-				var players = data.currentPlayers;
 				$("#playerList").empty();
 				players.forEach(function (player) {
 				    ctx.fillStyle = player.color;
 				    ctx.fillRect(player.x, player.y, 10, 10);
 				    $("#playerList").append("<li style='color:"+player.color+"'><p>" + player.nickname + "</p></li>");
 				})
-			});
+				if (dragging) {
+					var cx = dragData.cx;
+					var cy = dragData.cy;
+					var radius = 50;
+					var pi = Math.PI;
+					var startAngle, endAngle;
+					var direction = dragData.direction;
+
+					// Draw pad
+					ctxUI.beginPath();
+						ctxUI.arc(cx, cy, radius, 0, 2*pi, false);
+						ctxUI.strokeStyle = 'black';
+						ctxUI.fillStyle = 'grey';
+					ctxUI.fill();
+					ctxUI.stroke();
+
+					// Draw dividers
+					var offset = Math.sqrt(2)/2*radius
+					ctxUI.beginPath();
+					    ctxUI.moveTo(cx-offset, cy-offset);
+					    ctxUI.lineTo(cx+offset, cy+offset);
+				    ctxUI.stroke();
+				    ctxUI.beginPath();
+					    ctxUI.moveTo(cx+offset, cy-offset);
+					    ctxUI.lineTo(cx-offset, cy+offset);
+				    ctxUI.stroke();
+
+					// Draw direction as wedge
+					switch (direction) {
+						case 'up':
+							startAngle = 1.25;
+							endAngle = 1.75;
+							break; 
+						case 'left':
+							startAngle = 0.75;
+							endAngle = 1.25;
+							break; 
+						case 'right':
+							startAngle = 1.75;
+							endAngle = 0.25;
+							break;
+						case 'down':
+							startAngle = 0.25;
+							endAngle = 0.75;
+							break; 
+					}
+
+					
+					if (direction !== null) {
+						
+						ctxUI.beginPath();
+							ctxUI.moveTo(cx, cy);
+						    ctxUI.arc(cx, cy, radius, startAngle*pi, endAngle*pi, false);
+					    	ctxUI.closePath();
+					    	if (execute) {
+					    		ctxUI.fillStyle = 'green';
+					    	} else {
+					    		ctxUI.fillStyle = 'black';
+					    	}
+					    	
+				    	ctxUI.fill();
+					}
+					
+				}
+			}
 		  
 		window.addEventListener("keydown", handleInput, false);
 	    function handleInput(e) {
@@ -100,6 +180,52 @@
         	var name = $("#inputName").val();
         	socket.emit('nameChange', { name: name });
         }
+
+        var ui = document.getElementById("myUI");
+        var options = {preventDefault: true, dragMinDistance: 5};
+        var MTEvents = "dragstart drag dragend";
+     	var MTHandler = function(ev) {
+     		ev.preventDefault();
+     		ev.gesture.preventDefault();
+
+     		switch (ev.type) {
+ 				case "dragstart":
+ 					// Start drawing joystick
+     				dragging = true;
+     				// Update dragdata center, with no direction
+ 					dragData.cx = ev.gesture.center.pageX;
+ 					dragData.cy = ev.gesture.center.pageY;
+ 					// Fall through
+ 				case "drag":
+ 					// Update dragdata direction
+ 					switch (ev.gesture.direction) {
+ 						case Hammer.DIRECTION_UP:
+ 							dragData.direction = 'up';
+ 							break;
+						case Hammer.DIRECTION_LEFT:
+							dragData.direction = 'left';
+ 							break;
+						case Hammer.DIRECTION_RIGHT:
+							dragData.direction = 'right';
+ 							break;
+						case Hammer.DIRECTION_DOWN:
+							dragData.direction = 'down';
+ 							break;
+ 					}
+ 					// Draw
+ 					draw();
+     				break;
+ 				case "dragend":
+ 					socket.emit('changedirection', { dir: dragData.direction });
+ 					execute = true;
+ 					setTimeout(function(){dragging=false; execute=false;}, 100);
+     				break;
+
+     		}
+     	};
+     	var hammertime = Hammer(ui, options).on(MTEvents, MTHandler);
+
+
 		</script>
 
 	</body>
