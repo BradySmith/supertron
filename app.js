@@ -15,11 +15,11 @@ app.get('/', function (req, res) {
 });
 
 var currentPlayers = [];
-var availColors = ["blue", "red", "green"];
 
-// random names
+// arrays
 var names = arrayfile.names;
 var adjectives = arrayfile.adjectives;
+var availColors = arrayfile.availColors;
 
 var connectedUsers = [];
 
@@ -30,13 +30,14 @@ for (var i=0; i<gameBoard.length;i++){
 
 
 
-function User (clientID, nickname){
+function User (clientID, nickname, color){
     this.clientID = clientID;
     this.nickname = nickname;
+    this.color = color;
 }
 
-function Player(x, y, clientID, nickname){
-    this.color = availColors.pop();
+function Player(x, y, clientID, nickname, color){
+    this.color = color;
     this.x = x;
     this.y = y;
     this.clientID = clientID;
@@ -61,16 +62,16 @@ function gameLoop(){
                 for (var i=0; i < 3; i++){
                     switch (i) {
                         case 0:
-                            currentPlayers[0] = new Player(300, 250, connectedUsers[i].clientID, connectedUsers[i].nickname);
+                            currentPlayers[0] = new Player(300, 250, connectedUsers[i].clientID, connectedUsers[i].nickname, connectedUsers[i].color);
                             break;
                         case 1:
                             if (connectedUsers.length > 1){
-                                currentPlayers[1] = new Player(500, 250, connectedUsers[i].clientID, connectedUsers[i].nickname);
+                                currentPlayers[1] = new Player(500, 250, connectedUsers[i].clientID, connectedUsers[i].nickname, connectedUsers[i].color);
                             }
                             break;
                         case 2:
                             if (connectedUsers.length > 2){
-                                currentPlayers[2] = new Player(400, 250, connectedUsers[i].clientID, connectedUsers[i].nickname);
+                                currentPlayers[2] = new Player(400, 250, connectedUsers[i].clientID, connectedUsers[i].nickname, connectedUsers[i].color);
                             }
                             break;
                     }
@@ -98,7 +99,7 @@ function checkForCollisions(p){
 function checkForDeadies(p){
     for (var i = 0; i < p.length; i++){
         if (p[i].alive == false){
-                availColors.push(currentPlayers[i].color);
+                //availColors.push(currentPlayers[i].color);
                 currentPlayers.splice(i, 1);
         }
     }
@@ -185,13 +186,15 @@ io.sockets.on('connection', function (client) {
         //and store this on their socket/connection
         client.userid = UUID();
 
-        //Useful to know when someoce connects
-        console.log('\t socket.io:: player ' + client.userid + ' connected');
         var nameIndex = Math.floor(Math.random()*names.length);
         var adjIndex = Math.floor(Math.random()*adjectives.length);
         var randName = adjectives[adjIndex] + " " + names[nameIndex];
         randName = randName.charAt(0).toUpperCase() + randName.slice(1);
-        var newUser = new User(client.userid, randName);
+        var colorIndex = Math.floor(Math.random()*availColors.length);
+        var randColor = availColors[colorIndex];
+        availColors.splice(colorIndex,1);
+        var newUser = new User(client.userid, randName, randColor);
+        console.log('\t socket.io:: player ' + randName+'-'+randColor + ' connected');
         connectedUsers.push(newUser);
 
         //When this client changes direction
@@ -220,13 +223,13 @@ io.sockets.on('connection', function (client) {
             console.log('\t socket.io:: client disconnected ' + client.userid );
             for (var i=0; i<currentPlayers.length;i++){
                 if (currentPlayers[i].clientID == client.userid){
-                    availColors.push(currentPlayers[i].color);
                     currentPlayers.splice(i, 1);
                 }
             }
 
             for (var i=0; i<connectedUsers.length;i++){
                 if (connectedUsers[i].clientID == client.userid){
+                    availColors.push(connectedUsers[i].color);
                     connectedUsers.splice(i, 1);
                 }
             }
