@@ -218,6 +218,13 @@
 							dragData.direction = 'down';
  							break;
  					}
+ 					// Check for breakpoint distance, execute and stop detection
+ 					if (ev.gesture.distance > 20) {
+ 						socket.emit('changedirection', { dir: dragData.direction });
+	 					execute = true;
+	 					setTimeout(function(){dragging=false; execute=false;}, 100);
+ 						ev.gesture.stopDetect();
+ 					}
  					// Draw
  					draw();
      				break;
