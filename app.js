@@ -51,7 +51,7 @@ function Player(x, y, clientID, nickname, color){
 function resetGameBoard(){
     //record the win
     for (var i=0; i<connectedUsers.length;i++){
-        if (victor == connectedUsers[i].clientID){
+        if (victor == connectedUsers[i].clientID && connectedUsers.length > 1) {
             connectedUsers[i].wins++;
         }
     }
