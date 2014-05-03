@@ -12,26 +12,31 @@
 	<body>
 		<div id="master">
 			<div id="gameBoard">
-				<canvas id="myCanvas" width="800" height="500" style="border:1px solid #c3c3c3; z-index: 1;">
+				<canvas id="myCanvas" width="800" height="500">
 					Your browser does not support the HTML5 canvas tag.
 				</canvas>
 				<canvas id="myUI" width="800" height="500" style="position:absolute; top: 0px; left: 0px; border:1px; z-index: 2;">
 					Your browser does not support the HTML5 canvas tag.
 				</canvas>
 			</div>
-			<div id="content">
-				<h2><u>Players</u></h2>
-				<ul id="playerList">
-				</ul>
-				<h2><u>Connected Users</u></h2>
+			<div id="sideBoard">
+				<div id="currentPlayers">
+					<h2>Players:</h2>
+					<ul id="playerList">
+					</ul>
+				</div>
+				<div id="connectedUsers">
+				<h2>Connected Users:</h2>
 				<ul id="userList">
 				</ul>
+				</div>
+				<div id="bottom">
+					<input id="inputName" type="text"/>
+					<button id="sendName" onclick="nameChange()">Submit</button>
+				</div>	
 			</div>
 		</div>
-		<div id="bottom">
-			<input id="inputName" type="text"/>
-			<button id="sendName" onclick="nameChange()">Submit</button>
-		</div>		
+	
 
 		<script src="/socket.io/socket.io.js"></script>
 		<script>
@@ -48,7 +53,7 @@
 			var myOffset;
 			ctx.fillStyle="#FF0000";
 
-			var socket = io.connect('172.16.1.65');
+			var socket = io.connect('http://localhost');
 
 			socket.on("connected", function(data) {
 				$("#userList").empty();

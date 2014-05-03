@@ -6,29 +6,58 @@ li {
 	list-style-type:square;
 }
 
-p,h2 {
-	font-family: "Times New Roman", arial, serif;
+h2 {
+	font-family: "Arial", arial, serif;
 	color: black;
+	font-size: 125%;
+	margin-top: 2px;
+	margin-left: 4px;
+	padding: 0px;
+	margin-bottom: -15px;
+}
+
+p {
+	font-family: "Arial", arial, serif;
+	color: black;
+	font-size: 75%;
+	margin-right: 2px;
 }
 
 #master {
-
+	margin-left: auto ;
+	margin-right: auto ;
+	width: 1040px;
 }
 
 #gameBoard {
-	padding-right: 20px;
+	margin-right: 20px;
 	display: block;
 	float: left;
 }
 
-#content {
-	display: block;
-	float: left;
-	min-height: 500px;
+#myCanvas {
+	border:2px solid #000000; 
+	z-index: 1;
 }
 
-#playerList{
-	min-height: 150px;
+#sideBoard {
+	width: 200px;
+	height: 500px;
+	display: block;
+	float: left;
+}
+
+#connectedUsers{
+	min-height: 60%;
+	border:2px solid;
+	border-radius:5px;
+	margin-top: 2px;
+}
+
+#currentPlayers {
+	min-height: 30%;
+	border:2px solid;
+	border-radius:5px;
 }
 
 #bottom {
@@ -38,6 +67,7 @@ p,h2 {
 
 #inputName {
 	margin-top: 15px;
+	width: 50%;
 	text-align: center;
 }
 
